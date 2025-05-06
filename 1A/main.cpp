@@ -4,7 +4,7 @@
 class Area {
 
     public:
-
+    Area() : x_coordinate(0), y_coordinate(0), pave(false) {}
     Area(int x, int y):
         x_coordinate(x),
         y_coordinate(y)
@@ -37,12 +37,12 @@ class TheaterSquare {
         width(w),
         length(l)
     {
-        areas.resize(width);
         for (int x = 0; x < width; ++x) {
-            areas[x].reserve(length);
+            std::vector<Area> row;
             for (int y = 0; y < length; ++y) {
-                areas[x].emplace_back(x, y);
+                row.emplace_back(x, y);  // Calls Area(x, y)
             }
+            areas.emplace_back(std::move(row));
         }
     }
 
@@ -86,24 +86,23 @@ class TheaterSquare {
         int next_x_point = x_pave_coord_global + this->pave_size;
         int next_y_point = y_pave_coord_global + this->pave_size;
 
-        // Exit
-        if (next_x_point >= this->length || next_y_point >= this->width) return;
-
         // lefter
-        if (!this->areas[next_x_point][y_pave_coord_global].pave)
+        if (next_x_point < this->length)
         {
             this->recursive_pave(next_x_point, y_pave_coord_global, 0, 0);
         }
         // diagonal
-        if (!this->areas[next_x_point][next_y_point].pave)
+        if (next_x_point < this->length && next_y_point < this->width)
         {
             this->recursive_pave(x_pave_coord_global + this->pave_size, next_y_point, 0, 0);
         }
         // below
-        if (!this->areas[x_pave_coord_global][next_y_point].pave)
+        if (next_y_point < this->width)
         {
             this->recursive_pave(x_pave_coord_global, next_y_point, 0, 0);
         }
+
+        return;
     }
 
     void recursive_pave(int x_coor, int y_coor, int x_pave_coor, int y_pave_coor)
@@ -112,8 +111,6 @@ class TheaterSquare {
         if (x_coor >= this->length || y_coor >= this->width) return;
 
         // Paving
-        this->paveAArea(x_coor, y_coor, x_pave_coor, y_pave_coor);
-
         int x_pave_coord_global = x_coor - x_pave_coor;
         int y_pave_coord_global = y_coor - y_pave_coor;
 
@@ -141,11 +138,18 @@ class TheaterSquare {
 
 
 int main(){
-    TheaterSquare ts(6,6);
+    TheaterSquare ts(2,1);
     ts.printAreas();
-    ts.paving(4);
+    ts.paving(1);
     std::cout << "--------------\n"; 
     ts.printAreas();
-    std::cout << "Used #stone: " << ts.getUsedStoneNumber();
+    std::cout << "Used #stone: " << ts.getUsedStoneNumber() << "\n";
+
+    // long long n, m, a;
+    // std::cin >> n >> m >> a;
+    // TheaterSquare ts(n,m);
+    // ts.paving(a);
+    // std::cout << ts.getUsedStoneNumber() << "\n";
+
     return 0;
 }
