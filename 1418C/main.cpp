@@ -2,63 +2,89 @@
 #include <vector>
 #include <bitset>
 #include <string>
-#include <algorithm>
+#include <map>
 
-class BossHandle
+class Node
 {
     public:
-    BossHandle(int boss_number, std::vector<std::bitset<1>> boss_list):
-    boss_number(boss_number),
-    boss_list(boss_list)
-    {
-        std::reverse(this->boss_list.begin(), this->boss_list.end());
-    }
+    Node* zero {nullptr};
+    Node* one {nullptr};
+    Node* two {nullptr};
+    Node* parent {nullptr};
 
-    void SessionFighting(int killed_boss_num, std::string fighter)
+    int skip_num;
+    std::bitset<1> boss_level;
+    std::string fighter;
+    std::bitset<2> leaf_value;
+
+    Node *previousSessonNode()
     {
-        if (fighter == "me"){
-            me_frighting += 1;
-        }else if (fighter == "myfriend")
+        Node *traceback_node = parent;
+        while(true)
         {
-            for (int counter = 0; counter < killed_boss_num; ++counter)
-            {
-                std::bitset<1> boss_level { boss_list[boss_list.size() - 1 - counter] };
-                if (boss_level == 0b0){
-                    friend_frighting += 1;
-                }
-                else{
-                    skipper_frighting += 1;
-                }
-            }
+            if (traceback_node->leaf_value == 0 || traceback_node->leaf_value == 2) return traceback_node;
+            traceback_node = traceback_node->parent;
         }
-
-        boss_list.resize(boss_list.size() - killed_boss_num);
     }
-
-    std::vector<std::bitset<1>> getBossList(){
-        return boss_list;
-    }
-
-    int getSkipper(){
-        return skipper_frighting;
-    }
-    
-    int getFriendFighting(){
-        return friend_frighting;
-    }
-
-
-
-    private:
-    int boss_number;
-    std::vector<std::bitset<1>> boss_list;
-    int me_frighting{0};
-    int friend_frighting{0};
-    int skipper_frighting{0};
-    std::string turn_marker[2] = {"me", "myfriend"};
-
 
 };
+
+class FightingTree
+{
+    public:
+    FightingTree(std::vector<std::bitset<1>> boss_list):
+        boss_list(boss_list)
+    {
+        rootNode.fighter = "myfriend";
+        rootNode.boss_level = boss_list[0];
+        rootNode.leaf_value = 0;
+        if (rootNode.boss_level == 0) 
+            rootNode.skip_num = 0;
+        else rootNode.skip_num = 1;
+
+        rootNode.one = addTreeNodes(&rootNode, 0, 2);
+        rootNode.zero = addTreeNodes(&rootNode, 1, 2);
+    }
+
+    Node *addTreeNodes(Node *parent_node, std::bitset<2> leaf_value, int tree_level)
+    {
+        // Brake
+        if (tree_level > int(boss_list.size())) return nullptr;
+        tree_level += 1;
+
+        // Setting up parental stuffs
+        Node *child_node = new Node;
+        child_node->parent = parent_node;
+        child_node->leaf_value = leaf_value;
+
+        if (leaf_value == 1) child_node->two = addTreeNodes(child_node, 2, tree_level);
+        if (leaf_value == 0 || leaf_value == 2)
+        {
+            child_node->zero = addTreeNodes(child_node, 0, tree_level);
+            child_node->one = addTreeNodes(child_node, 1, tree_level);
+        }
+
+        // Setting up value of node
+        child_node->boss_level = this->boss_list[tree_level-1];
+
+        Node *privious_ss_node = child_node->previousSessonNode();
+        if (privious_ss_node->fighter == "myfriend") child_node->fighter = "me";
+        else if (privious_ss_node->fighter == "me") child_node->fighter = "myfriend";
+
+        if (child_node->fighter == "myfriend" && child_node->boss_level == 1) {
+            child_node->skip_num = parent_node->skip_num + 1;
+        }
+
+        return child_node;
+
+    }
+
+    private:
+    std::vector<std::bitset<1>> boss_list;
+    Node rootNode;
+
+};
+
 
 
 
@@ -91,19 +117,12 @@ int main()
     // }
 
     //// Testing
-    int boss_number {4};
-    std::vector<std::bitset<1>> boss_list{ 1, 1, 1, 1 };
+    // int boss_number {4};
+    std::vector<std::bitset<1>> boss_list{ 1, 0, 0, 1 };
     // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
-    BossHandle bh(boss_number, boss_list);
-    // for (const std::bitset<1> bit: bh.getBossList()) std::cout << bit << '\n'; 
+    FightingTree tree(boss_list);
 
-    // bh.SessionFighting(2, "me");
-    // for (const std::bitset<1> bit: bh.getBossList()) std::cout << bit << '\n'; 
     
-    bh.SessionFighting(2, "myfriend");
-    for (const std::bitset<1> bit: bh.getBossList()) std::cout << bit << '\n'; 
-    std::cout << bh.getSkipper() << '\n';
-    std::cout << bh.getFriendFighting() << '\n';
 
     return 0;
 }
