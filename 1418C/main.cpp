@@ -174,16 +174,17 @@ int main()
     //     }
 
     //     // Handle bosses
-    //     BossHandle(boss_number, boss_list);
+    //     FightingTree tree(boss_list);
+    //     std::cout << tree.findMinSkip() << '\n';
     // }
 
-    //// Testing
+    // Testing
     // int boss_number {4};
-    std::vector<std::bitset<1>> boss_list{ 1, 1, 1 };
+    std::vector<std::bitset<1>> boss_list{ 1, 1, 0, 1, 0 };
     // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
     FightingTree tree(boss_list);
-    // tree.printYoungestNodes();
-    std::cout << tree.findMinSkip() << '\n';
+    tree.printYoungestNodes();
+    // std::cout << tree.findMinSkip() << '\n';
 
     
 
