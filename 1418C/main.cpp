@@ -118,6 +118,16 @@ class FightingTree
         for (Node *&node: youngest_nodes) std::cout << *node << '\n';
     }
 
+    int findMinSkip()
+    {
+        int min_skip {static_cast<int>(boss_list.size())};
+        for (Node *&node: youngest_nodes)
+        {
+            if (node->skip_num < min_skip) min_skip = node->skip_num;
+        }
+        return min_skip;
+    }
+
     private:
     std::vector<std::bitset<1>> boss_list;
     Node *rootNode;
@@ -172,7 +182,8 @@ int main()
     std::vector<std::bitset<1>> boss_list{ 1, 1, 1 };
     // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
     FightingTree tree(boss_list);
-    tree.printYoungestNodes();
+    // tree.printYoungestNodes();
+    std::cout << tree.findMinSkip() << '\n';
 
     
 
