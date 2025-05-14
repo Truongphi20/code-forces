@@ -47,13 +47,19 @@ class FightingTree
     FightingTree(std::vector<std::bitset<1>> boss_list):
         boss_list(boss_list)
     {
-        rootNode.fighter = "";
-        rootNode.boss_level = 0;
-        rootNode.leaf_value = 0;
-        rootNode.skip_num = 0;
+        rootNode = new Node;
+        rootNode->fighter = "";
+        rootNode->boss_level = 0;
+        rootNode->leaf_value = 0;
+        rootNode->skip_num = 0;
 
-        rootNode.zero = addTreeNodes(&rootNode, 0, 1);
-        rootNode.one  = addTreeNodes(&rootNode, 1, 1);
+        rootNode->zero = addTreeNodes(rootNode, 0, 1);
+        rootNode->one  = addTreeNodes(rootNode, 1, 1);
+    }
+
+    ~FightingTree()
+    {
+        clearTree(rootNode);
     }
 
     Node *addTreeNodes(Node *parent_node, std::bitset<2> leaf_value, int tree_level)
@@ -114,8 +120,19 @@ class FightingTree
 
     private:
     std::vector<std::bitset<1>> boss_list;
-    Node rootNode;
+    Node *rootNode;
     std::vector<Node*> youngest_nodes;
+
+    void clearTree(Node *node)
+    {
+        if (node->zero != nullptr) clearTree(node->zero);
+        if (node->one != nullptr) clearTree(node->one);
+        if (node->two != nullptr) clearTree(node->two);
+        
+        delete node;
+        node = nullptr;
+ 
+    }
 
 };
 
