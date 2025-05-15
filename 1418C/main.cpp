@@ -49,7 +49,6 @@ class FightingTree
     FightingTree(std::vector<std::bitset<1>> boss_list):
         boss_list(boss_list)
     {
-        Node *rootNode = new Node;
         rootNode->fighter = "";
         rootNode->boss_level = 0;
         rootNode->leaf_value = 0;
@@ -64,18 +63,22 @@ class FightingTree
 
     ~FightingTree()
     {
-        clearTree(rootNode);
+        clearTree(&rootNode);
     }
 
-    void addTreeNodes(std::vector<Node*> parent_nodes)
+    void addTreeNodes(std::vector<Node*> &parent_nodes)
     {
+        // Brake
         if (parent_nodes[0]->tree_level == static_cast<int>(boss_list.size())){
             for (const auto &node: parent_nodes){
                 if (node->leaf_value != 1) youngest_nodes.push_back(node);
             }
             return;
         }
+        // Filter parent nodes
 
+
+        // Add new nodes
         std::vector<Node*> new_parent_nodes;
        for (Node *node: parent_nodes)
        {
@@ -148,17 +151,17 @@ class FightingTree
 
     private:
     std::vector<std::bitset<1>> boss_list;
-    Node *rootNode;
+    Node *rootNode = new Node;
     std::vector<Node*> youngest_nodes;
 
-    void clearTree(Node *node)
+    void clearTree(Node **node)
     {
-        if (node->zero != nullptr) clearTree(node->zero);
-        if (node->one != nullptr) clearTree(node->one);
-        if (node->two != nullptr) clearTree(node->two);
+        if ((*node)->zero != nullptr) clearTree(&(*node)->zero);
+        if ((*node)->one != nullptr) clearTree(&(*node)->one);
+        if ((*node)->two != nullptr) clearTree(&(*node)->two);
         
-        delete node;
-        node = nullptr;
+        delete *node;
+        *node = nullptr;
  
     }
 
