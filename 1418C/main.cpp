@@ -76,7 +76,7 @@ class FightingTree
             return;
         }
         // Filter parent nodes
-
+        
 
         // Add new nodes
         std::vector<Node*> new_parent_nodes;
@@ -101,6 +101,7 @@ class FightingTree
        }
 
        this->addTreeNodes(new_parent_nodes);
+       parent_nodes.clear();
     }
 
     Node* addNode(Node* node, std::bitset<2> leaf_value)
