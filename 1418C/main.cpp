@@ -16,6 +16,7 @@ class Node
     std::bitset<1> boss_level;
     std::string fighter;
     std::bitset<2> leaf_value;
+    int tree_level;
 
     Node *previousSessonNode()
     {
@@ -35,6 +36,7 @@ class Node
         os << "     boss_level= "<< obj.boss_level << ",\n";
         os << "     fighter   = "<< obj.fighter << ",\n";
         os << "     leaf_value= "<< obj.leaf_value << ",\n";
+        os << "     tree_level= "<< obj.tree_level << ",\n";
         os << ")";
         return os;
     }
@@ -47,14 +49,17 @@ class FightingTree
     FightingTree(std::vector<std::bitset<1>> boss_list):
         boss_list(boss_list)
     {
-        rootNode = new Node;
+        Node *rootNode = new Node;
         rootNode->fighter = "";
         rootNode->boss_level = 0;
         rootNode->leaf_value = 0;
         rootNode->skip_num = 0;
+        rootNode->tree_level = 0;
 
-        rootNode->zero = addTreeNodes(rootNode, 0, 1);
-        rootNode->one  = addTreeNodes(rootNode, 1, 1);
+        std::vector<Node*> initial_node_list { rootNode };
+
+        this->addTreeNodes(initial_node_list);
+
     }
 
     ~FightingTree()
@@ -62,50 +67,63 @@ class FightingTree
         clearTree(rootNode);
     }
 
-    Node *addTreeNodes(Node *parent_node, std::bitset<2> leaf_value, int tree_level)
+    void addTreeNodes(std::vector<Node*> parent_nodes)
     {
-        // Brake
-        if (tree_level > int(boss_list.size())) return nullptr;
-        if (tree_level == int(boss_list.size()) && leaf_value == 1) return nullptr;
+        if (parent_nodes[0]->tree_level == static_cast<int>(boss_list.size())){
+            for (const auto &node: parent_nodes){
+                if (node->leaf_value != 1) youngest_nodes.push_back(node);
+            }
+            return;
+        }
 
-        // Setting up parental stuffs
+        std::vector<Node*> new_parent_nodes;
+       for (Node *node: parent_nodes)
+       {
+        if(node->leaf_value == 0 || node->leaf_value == 2)
+        {
+            Node* zero_node = this->addNode(node, 0);
+            node->zero = zero_node;
+            new_parent_nodes.push_back(zero_node);
+
+            Node* one_node = this->addNode(node, 1);
+            node->one = one_node;
+            new_parent_nodes.push_back(one_node);
+        }
+        if(node->leaf_value == 1)
+        {
+            Node* two_node = this->addNode(node, 2);
+            node->two = two_node;
+            new_parent_nodes.push_back(two_node);
+        }
+       }
+
+       this->addTreeNodes(new_parent_nodes);
+    }
+
+    Node* addNode(Node* node, std::bitset<2> leaf_value)
+    {
+        // Setup phylogenic
         Node *child_node = new Node;
-        child_node->parent = parent_node;
+        child_node->parent = node;
+
+        // Setup values
+        child_node->tree_level = node->tree_level + 1; 
+        child_node->boss_level = this->boss_list[child_node->tree_level - 1];
         child_node->leaf_value = leaf_value;
+        
+        Node *privious_node = child_node->previousSessonNode();
+        if (privious_node->fighter == "myfriend") child_node->fighter = "me";
+        if (privious_node->fighter == "me") child_node->fighter = "myfriend";
+        if (privious_node->fighter == "") child_node->fighter = "myfriend";
 
-        // Setting up value of node
-        child_node->boss_level = this->boss_list[tree_level-1];
-
-        Node *privious_ss_node = child_node->previousSessonNode();
-        if (privious_ss_node->fighter == "myfriend") 
-            child_node->fighter = "me";
-        else if (privious_ss_node->fighter == "me") 
-            child_node->fighter = "myfriend";
-        else if (privious_ss_node->fighter == "") 
-            child_node->fighter = "myfriend";
-
-        if (child_node->fighter == "myfriend" && child_node->boss_level == 1) {
-            child_node->skip_num = parent_node->skip_num + 1;
-        } else {
-            child_node->skip_num = parent_node->skip_num;
-        }
-
-        // Collect youngest node
-        if (tree_level == int(boss_list.size()))
-        {
-            youngest_nodes.push_back(child_node);
-        }
-
-        // Setting fertile stuffs
-        if (leaf_value == 1) child_node->two = addTreeNodes(child_node, 2, tree_level + 1);
-        if (leaf_value == 0 || leaf_value == 2)
-        {
-            child_node->zero = addTreeNodes(child_node, 0, tree_level + 1);
-            child_node->one = addTreeNodes(child_node, 1, tree_level + 1);
+        
+        if (child_node->fighter == "myfriend" && child_node->boss_level == 1){
+            child_node->skip_num = node->skip_num + 1;
+        }else{
+            child_node->skip_num = node->skip_num;
         }
 
         return child_node;
-
     }
 
     std::vector<Node*> getChildrenNodes()
@@ -180,7 +198,7 @@ int main()
 
     // Testing
     // int boss_number {4};
-    std::vector<std::bitset<1>> boss_list{ 1, 1, 0, 1, 0 };
+    std::vector<std::bitset<1>> boss_list{ 1, 1, 1 };
     // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
     FightingTree tree(boss_list);
     tree.printYoungestNodes();
