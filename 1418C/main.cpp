@@ -120,8 +120,10 @@ class FightingTree
 {
     public:
     FightingTree(std::vector<std::bitset<1>> boss_list):
-        boss_list(boss_list)
+        boss_list(boss_list),
+        boss_number(static_cast<int>(boss_list.size()))
     {
+        rootNode = new Node;
         rootNode->fighter = "";
         rootNode->boss_level = 0;
         rootNode->leaf_value = 0;
@@ -134,14 +136,17 @@ class FightingTree
 
     }
 
-    ~FightingTree()
-    {
-        clearTree(rootNode);
-    }
+    Node* rootNode;
+
+    // ~FightingTree()
+    // {
+    //     clearTree(rootNode);
+    // }
 
     void addTreeNodes(std::vector<Node*> &parent_nodes)
     {
         // Brake
+        if (parent_nodes.empty()) return;
         int tree_level {parent_nodes[0]->tree_level};
         if (tree_level == this->boss_number){
             for (const auto &node: parent_nodes){
@@ -283,14 +288,6 @@ class FightingTree
         return min_node;
     }
 
-    private:
-    std::vector<std::bitset<1>> boss_list;
-    int boss_number {static_cast<int>(boss_list.size())};
-    Node *rootNode = new Node;
-    std::vector<Node*> youngest_nodes;
-    std::vector<LinkerNode*> linker_nodes;
-    std::map<std::string, Linker*> linker_map;
-
     void clearTree(Node *&node)
     {
         if (node->zero != nullptr) clearTree(node->zero);
@@ -312,6 +309,13 @@ class FightingTree
         node = nullptr;
  
     }
+
+    private:
+    std::vector<std::bitset<1>> boss_list;
+    int boss_number;
+    std::vector<Node*> youngest_nodes;
+    std::vector<LinkerNode*> linker_nodes;
+    static std::map<std::string, Linker*> linker_map;
 
     int getRemainSkip(int tree_level)
     {
@@ -339,40 +343,42 @@ class FightingTree
 
 };
 
-
+std::map<std::string, Linker*> FightingTree::linker_map;
 
 int main()
 {
-    int test_case_num;
-    std::cin >> test_case_num;
+    // int test_case_num;
+    // std::cin >> test_case_num;
 
-    for (int i=0; i<test_case_num; i++)
-    {
-        // Read boss number
-        int boss_number;
-        std::cin >> boss_number;
+    // for (int i=0; i<test_case_num; i++)
+    // {
+    //     // Read boss number
+    //     int boss_number;
+    //     std::cin >> boss_number;
         
-        // Read list of boss
-        std::vector<std::bitset<1>> boss_list;
-        for (int i=0; i < boss_number; i++)
-        {
-            std::bitset<1> bit;
-            std::cin >> bit;
-            boss_list.push_back(bit);
-        }
+    //     // Read list of boss
+    //     std::vector<std::bitset<1>> boss_list;
+    //     for (int i=0; i < boss_number; i++)
+    //     {
+    //         std::bitset<1> bit;
+    //         std::cin >> bit;
+    //         boss_list.push_back(bit);
+    //     }
 
-        // Handle bosses
-        FightingTree tree(boss_list);
-        std::cout << tree.getFinalMinSkip() << '\n';
-    }
+    //     // Handle bosses
+    //     FightingTree tree(boss_list);
+    //     std::cout << tree.getFinalMinSkip() << '\n';
 
-    // // Testing
-    // // int boss_number {4};
-    // std::vector<std::bitset<1>> boss_list{ 1, 0, 1, 1, 0, 1, 1, 1 };
-    // // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
-    // FightingTree tree(boss_list);
-    // tree.printYoungestNodes();
-    // std::cout << tree.getFinalMinSkip() << '\n';
+    //     if (i == test_case_num - 1) tree.clearTree(tree.rootNode);
+    // }
+
+    // Testing
+    // int boss_number {4};
+    std::vector<std::bitset<1>> boss_list{ 1,0,1,1,0,1,1,1,1,0,1,0,1,0 };
+    // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
+    FightingTree tree(boss_list);
+    tree.printYoungestNodes();
+    std::cout << tree.getFinalMinSkip() << '\n';
 
     
 
