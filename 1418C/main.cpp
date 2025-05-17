@@ -25,6 +25,7 @@ class Node
     std::string fighter;
     std::bitset<2> leaf_value;
     int tree_level;
+    bool available{true};
 
     Node *previousSessonNode();
     friend std::ostream& operator<<(std::ostream& os, const Node& obj);
@@ -60,7 +61,7 @@ class Linker
 void Linker::findMinSkipInSubtree()
 { 
     if (this->min_skip_num != 0) return;
-    min_skip_num = 1000;
+    min_skip_num = 1000 + max_tree_level;
     Node *current_node = this->head_node;
     travelNodes(current_node);
 }
@@ -77,10 +78,10 @@ void Linker::travelNodes(Node *&node)
         this->min_skip_num = node->linker_node->skip_num;
     }
 
-    if (node->zero != nullptr) travelNodes(node->zero);
-    if (node->one != nullptr) travelNodes(node->one);
-    if (node->two != nullptr) travelNodes(node->two);
-    
+    if (node->zero != nullptr && node->available) travelNodes(node->zero);
+    if (node->one != nullptr && node->available) travelNodes(node->one);
+    if (node->two != nullptr && node->available) travelNodes(node->two);
+
     return;
 }
 
@@ -155,19 +156,20 @@ class FightingTree
             return;
         }
         // Filter parent nodes
-        // int remain_available_skip {this->getRemainSkip(tree_level+1)};
-        // int min_skip {this->findMinSkip(parent_nodes)};
-        // int threshold_skip {remain_available_skip + min_skip};
+        int remain_available_skip {this->getRemainSkip(tree_level+1)};
+        int min_skip {this->findMinSkip(parent_nodes)};
+        int threshold_skip {remain_available_skip + min_skip};
 
-        // std::vector<Node*> filterd_parent_nodes;
-        // for (Node *node: parent_nodes){
-        //     if (node->skip_num <= threshold_skip) filterd_parent_nodes.push_back(node);
-        // }
-        // parent_nodes.clear();
+        std::vector<Node*> filterd_parent_nodes;
+        for (Node *node: parent_nodes){
+            if (node->skip_num <= threshold_skip) filterd_parent_nodes.push_back(node);
+            else node->available = false;
+        }
+        parent_nodes.clear();
 
         // Add new nodes
         std::vector<Node*> new_parent_nodes;
-        for (Node *&node: parent_nodes)
+        for (Node *&node: filterd_parent_nodes)
         {
             // Check cache subtree
             std::vector<std::bitset<1>> remain_bosses(this->boss_list.begin() + tree_level, this->boss_list.end());
@@ -213,7 +215,7 @@ class FightingTree
             }
         }
 
-        parent_nodes.clear();
+        filterd_parent_nodes.clear();
         this->addTreeNodes(new_parent_nodes);
 
         // Add min_skip to LinkerNode nodes
@@ -374,11 +376,12 @@ int main()
 
     // Testing
     // int boss_number {4};
-    std::vector<std::bitset<1>> boss_list{ 1,0,1,1,0,1,1,1,1,0,1,0,1,0 };
+    std::vector<std::bitset<1>> boss_list{ 1, 0, 1, 1, 0, 1, 1, 1 };
     // for (const std::bitset<1> bit: boss_list) std::cout << bit << '\n'; 
     FightingTree tree(boss_list);
     tree.printYoungestNodes();
     std::cout << tree.getFinalMinSkip() << '\n';
+    tree.clearTree(tree.rootNode);
 
     
 
