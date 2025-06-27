@@ -25,7 +25,7 @@ Compute::Compute(std::vector<int>* p_array, std::vector<std::vector<int>>* p_que
     p_array(p_array),
     p_queries(p_queries)
 {
-    std::sort(p_array->begin(), p_array->end());
+    std::sort(this->p_array->begin(), this->p_array->end(), [](int &a, int &b){return a > b;});
 }
 
 std::vector<std::pair<int, int>> Compute::sort_map()
@@ -45,7 +45,7 @@ int Compute::find_max()
     // Invoke statistic
     for(const std::vector<int> &query: *(this->p_queries))
     {
-        for (int index=query[0]; index <= query[1]; index++)
+        for (int index=query[0]-1; index < query[1]; index++)
         {
             ++this->statistis[index];
         }
@@ -56,9 +56,9 @@ int Compute::find_max()
 
     // Sum
     int max_sum{0};
-    for(const auto &[index, count]: sorted_stats)
+    for(int index=0; index<sorted_stats.size(); index++)
     {
-        max_sum += (*this->p_array)[index] * count; 
+        max_sum += (*this->p_array)[index] * sorted_stats[index].second; 
     }
 
     return max_sum;
