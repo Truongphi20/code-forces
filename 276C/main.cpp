@@ -9,13 +9,13 @@
 class Compute{
     public:
     Compute(std::vector<int>*, std::vector<std::vector<int>>*);
-    int find_max();
+    int64_t find_max();
     std::vector<std::pair<int, int>> sort_map();
 
     private:
     std::vector<int>* p_array;
     std::vector<std::vector<int>>* p_queries; 
-    std::unordered_map<int, int> statistis;
+    std::vector<int> statistis;
 
 };
 #endif
@@ -25,40 +25,31 @@ Compute::Compute(std::vector<int>* p_array, std::vector<std::vector<int>>* p_que
     p_array(p_array),
     p_queries(p_queries)
 {
+    this->statistis.resize(this->p_array->size() + 1, 0);
     std::sort(this->p_array->begin(), this->p_array->end(), [](int &a, int &b){return a > b;});
 }
 
-std::vector<std::pair<int, int>> Compute::sort_map()
-{
-    std::vector<std::pair<int, int>> sorted_stats(statistis.begin(), statistis.end());
-    std::sort(sorted_stats.begin(), sorted_stats.end(),
-        [](const auto& a, const auto& b) {
-            return a.second > b.second;
-        });
-
-    return sorted_stats;
-    
-}
-
-int Compute::find_max()
+int64_t Compute::find_max()
 {
     // Invoke statistic
     for(const std::vector<int> &query: *(this->p_queries))
     {
-        for (int index=query[0]-1; index < query[1]; index++)
-        {
-            ++this->statistis[index];
-        }
+        ++this->statistis[query[0]-1];
+        --this->statistis[query[1]];
+    }
+    // Return to statistic num
+    for (int index=1; index < this->statistis.size(); ++index){
+        this->statistis[index] += this->statistis[index-1];
     }
 
     // Sorting
-    std::vector<std::pair<int, int>> sorted_stats = this->sort_map();
+    std::sort(this->statistis.begin(), this->statistis.end(), [](int &a, int &b){return a > b;});
 
     // Sum
-    int max_sum{0};
-    for(int index=0; index<sorted_stats.size(); index++)
+    int64_t max_sum = 0;
+    for(int index=0; index < (this->statistis.size() - 1); index++)
     {
-        max_sum += (*this->p_array)[index] * sorted_stats[index].second; 
+        max_sum += static_cast<int64_t>((*this->p_array)[index]) * static_cast<int64_t>(this->statistis[index]); 
     }
 
     return max_sum;
