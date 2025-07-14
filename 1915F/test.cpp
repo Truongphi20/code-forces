@@ -17,6 +17,7 @@ TEST(Greeting, check_2)
 {
     std::vector<std::vector<int>> vectors {
         {2, 6},
+        {3, 9},
         {4, 5},
         {1, 8},
         {7, 10},
