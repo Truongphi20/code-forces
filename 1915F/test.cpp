@@ -67,3 +67,15 @@ TEST(Greeting, check_5)
     int result = Greeting(vectors).greeting_count();
     EXPECT_EQ(result , 0);
 }
+
+TEST(Greeting, moving)
+{
+    std::vector<std::vector<int>> vectors {
+        {2, 3},
+        {1, 4}
+    };
+
+    Greeting mv_ob = Greeting(vectors);
+    int result = mv_ob.greeting_count();
+    EXPECT_EQ(result , 1);
+}

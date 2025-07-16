@@ -7,12 +7,13 @@
 class Greeting {
     public:
     Greeting(std::vector<std::vector<int>> &vectors);
-    Greeting& operator=(const Greeting &&other);
+    Greeting(){};
+    Greeting& operator=(const Greeting &&other) noexcept;
     int greeting_count();
     bool check_meeting(std::vector<int> &first_vector, std::vector<int> &second_vector); 
 
     private:
-    std::vector<std::vector<int>> &vectors;
+    std::vector<std::vector<int>> vectors;
 };
 #endif
 
@@ -22,7 +23,7 @@ Greeting::Greeting(std::vector<std::vector<int>> &vectors):
     vectors(vectors)
 {}
 
-Greeting& Greeting::operator=(const Greeting &&other)
+Greeting& Greeting::operator=(const Greeting &&other) noexcept
 {
     this->vectors = std::move(other.vectors);
 
@@ -77,24 +78,21 @@ int main()
     // Collect inputs
     int test_case{0};
     std::cin >> test_case;
-    std::vector<Greeting> greetings;
-    while(--test_case)
-    {
-        int vector_num{0};
+    std::vector<Greeting> greetings(test_case);
+    for (int t = 0; t < test_case; ++t) {
+        int vector_num;
         std::cin >> vector_num;
-        std::vector<std::vector<int>> vectors(vector_num, std::vector<int>{2});
-        while(--vector_num)
-        {
-            std::cin >> vectors[vector_num][0] >> vectors[vector_num][1];
+        std::vector<std::vector<int>> vectors(vector_num, std::vector<int>(2));
+        for (int i = 0; i < vector_num; ++i) {
+            std::cin >> vectors[i][0] >> vectors[i][1];
         }
-
-        greetings[test_case] = std::move(Greeting(vectors));
+        greetings[t] = Greeting(vectors);
     }
 
     // Solve
     for (Greeting &greeting: greetings)
     {
-        std::cout << greeting.greeting_count();
+        std::cout << greeting.greeting_count() << '\n';
     }
 
     return 0;
